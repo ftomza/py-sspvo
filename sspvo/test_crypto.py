@@ -1,6 +1,6 @@
 from base64 import b64encode
-from unittest import TestCase
 
+import pytest
 from pyderasn import ObjectIdentifier, Any
 from pygost import gost3410, gost34112012256
 from pygost.asn1schemas.x509 import GostR34102012PublicKeyParameters
@@ -95,75 +95,76 @@ digest_hash = gost34112012256.GOST34112012256
 cert_curve = gost3410.CURVES["id-GostR3410-2001-CryptoPro-XchA-ParamSet"]
 
 
-class TestGOSTCrypto(TestCase):
+# Pylint: disable=TestGOSTCrypto
+class TestGOSTCrypto:
 
-    def setUp(self) -> None:
+    def setup(self):
         self.crypto = GOSTCrypto
 
     def test__parse_pem_ok(self):
-        self.assertIsNotNone(self.crypto._parse_pem(valid_cert))
+        assert self.crypto._parse_pem(valid_cert)
 
     def test__parse_pem_raise(self):
-        with self.assertRaises(BadRequest):
-            self.assertIsNotNone(self.crypto._parse_pem("BAD"))
+        with pytest.raises(BadRequest):
+            self.crypto._parse_pem("BAD")
 
     def test__parse_asn_cert_ok(self):
         pem = self.crypto._parse_pem(valid_cert)
-        self.assertIsNotNone(self.crypto._parse_asn_cert(pem))
+        assert self.crypto._parse_asn_cert(pem)
 
     def test__parse_asn_cert_raise(self):
         pem = self.crypto._parse_pem(bad_cert)
-        with self.assertRaises(CertNotValid):
-            self.assertIsNotNone(self.crypto._parse_asn_cert(pem))
+        with pytest.raises(CertNotValid):
+            assert self.crypto._parse_asn_cert(pem)
 
     def test__parse_asn_key_info_ok(self):
         pem = self.crypto._parse_pem(valid_key)
-        self.assertIsNotNone(self.crypto._parse_asn_prv_info(pem))
+        assert self.crypto._parse_asn_prv_info(pem)
 
     def test__parse_asn_key_info_raise(self):
         pem = self.crypto._parse_pem(bad_key)
-        with self.assertRaises(KeyNotValid):
-            self.assertIsNotNone(self.crypto._parse_asn_prv_info(pem))
+        with pytest.raises(KeyNotValid):
+            assert self.crypto._parse_asn_prv_info(pem)
 
     def test__parse_asn_params_cert_ok(self):
         cert = self.crypto._parse_asn_tbs_cert(valid_cert)
-        self.assertIsNotNone(self.crypto._parse_asn_params_cert(cert))
+        assert self.crypto._parse_asn_params_cert(cert)
 
     def test__parse_asn_params_cert_raise(self):
         cert = self.crypto._parse_asn_tbs_cert(valid_cert)
         cert["subjectPublicKeyInfo"]["algorithm"]["parameters"]._value += "TAIL".encode()
-        with self.assertRaises(CertNotValid):
-            self.assertIsNotNone(self.crypto._parse_asn_params_cert(cert))
+        with pytest.raises(CertNotValid):
+            assert self.crypto._parse_asn_params_cert(cert)
 
     def test__get_curve_ok(self):
         cert = self.crypto._parse_asn_tbs_cert(valid_cert)
         curve = self.crypto._get_curve(cert)
-        self.assertEqual(curve, cert_curve)
+        assert curve == cert_curve
 
     def test__get_curve_raise(self):
         cert = self.crypto._parse_asn_tbs_cert(valid_cert)
         cert["subjectPublicKeyInfo"]["algorithm"]["parameters"] = Any(GostR34102012PublicKeyParameters((
             ("publicKeyParamSet", ObjectIdentifier("1.2.643.7.1.2.1.2.9999")),
         )))
-        with self.assertRaises(CertNotValid):
+        with pytest.raises(CertNotValid):
             self.crypto._get_curve(cert)
 
     def test__parse_asn_private_key_ok(self):
         pem = self.crypto._parse_pem(valid_key)
         info = self.crypto._parse_asn_prv_info(pem)
-        self.assertIsNotNone(self.crypto._parse_asn_private_key(info))
+        assert self.crypto._parse_asn_private_key(info)
 
     def test__parse_asn_private_key_raise(self):
         pem = self.crypto._parse_pem(valid_key)
         info = self.crypto._parse_asn_prv_info(pem)
         info["privateKey"]._value += "TAIL".encode()
-        with self.assertRaises(KeyNotValid):
-            self.assertIsNotNone(self.crypto._parse_asn_private_key(info))
+        with pytest.raises(KeyNotValid):
+            assert self.crypto._parse_asn_private_key(info)
 
     def test__parse_asn_public_key_ok(self):
         tbs_cert = self.crypto._parse_asn_tbs_cert(valid_cert)
         info = self.crypto._get_asn_subject_pub_info(tbs_cert)
-        self.assertIsNotNone(self.crypto._parse_asn_public_key(info))
+        assert self.crypto._parse_asn_public_key(info)
 
     def test__parse_asn_public_key_raise(self):
         tbs_cert = self.crypto._parse_asn_tbs_cert(valid_cert)
@@ -171,20 +172,20 @@ class TestGOSTCrypto(TestCase):
         t1, t2 = info["subjectPublicKey"]._value
         t2 += "TAIL".encode()
         info["subjectPublicKey"]._value = (t1, t2)
-        with self.assertRaises(CertNotValid):
-            self.assertIsNotNone(self.crypto._parse_asn_public_key(info))
+        with pytest.raises(CertNotValid):
+            assert self.crypto._parse_asn_public_key(info)
 
     def test__parse_private_key_ok(self):
         prv = self.crypto._parse_private_key(valid_key)
-        self.assertEqual(prv, prv_key)
+        assert prv == prv_key
 
     def test__parse_public_key_ok(self):
         pub = self.crypto._parse_public_key(valid_cert)
-        self.assertEqual(pub, pub_key)
+        assert pub == pub_key
 
     def test__parse_public_key_hash_ok(self):
         hasher = self.crypto._parse_public_key_hash(valid_cert)
-        self.assertEqual(hasher, digest_hash)
+        assert hasher == digest_hash
 
     def test__parse_public_key_hash_raise(self):
         pem_cert = self.crypto._parse_pem(valid_cert)
@@ -195,30 +196,30 @@ class TestGOSTCrypto(TestCase):
                 ("digestParamSet", ObjectIdentifier("1.2.643.7.1.2.1.2.9999")),
             )))
         cert_new = b64encode(asn_cert.encode()).decode()
-        with self.assertRaises(CertNotValid):
+        with pytest.raises(CertNotValid):
             self.crypto._parse_public_key_hash(
                 "-----BEGIN CERTIFICATE-----\n" + cert_new + "\n-----END CERTIFICATE-----")
 
     def test_init_ok(self):
         crypto = self.crypto(valid_cert, valid_key)
-        self.assertEqual(crypto._hash, digest_hash)
-        self.assertEqual(crypto._prv_key, prv_key)
-        self.assertEqual(crypto._pub_key, pub_key)
-        self.assertEqual(crypto._curve, cert_curve)
+        assert crypto._hash == digest_hash
+        assert crypto._prv_key == prv_key
+        assert crypto._pub_key == pub_key
+        assert crypto._curve == cert_curve
 
     def test_init_raise(self):
-        with self.assertRaises(BadRequest):
+        with pytest.raises(BadRequest):
             self.crypto(valid_cert, bad_key2)
 
     def test_hash_ok(self):
         dgst = self.crypto(valid_cert, valid_key).hash("test".encode())
-        self.assertEqual(dgst, bytes.fromhex("57381c88028d0db1d099af299d2b596bcf148707fdf2e5f104551b193808a512"))
+        assert dgst, bytes.fromhex("57381c88028d0db1d099af299d2b596bcf148707fdf2e5f104551b193808a512")
 
     def test_sign_ok(self):
         crypto = self.crypto(valid_cert, valid_key)
         dgst = crypto.hash("test".encode())
         sign = crypto.sign(dgst)
-        self.assertTrue(crypto.verify(sign, dgst))
+        assert crypto.verify(sign, dgst)
 
     def test_verify_ok(self):
         crypto = self.crypto(valid_cert, valid_key)
@@ -227,13 +228,13 @@ class TestGOSTCrypto(TestCase):
             "187c82f8f70620ae217897f49c61b059944faebaebf07f7621272dea77d8af49c86a1135c418e25a4d7612b1f1b7d4ee4b00559a7d7ee6f7c708c41453396b55")
         sign2 = bytes.fromhex(
             "1068bd702e8f0ff9bfafb61a78f5e7fcbd7b4ded63c6d734daa9c72a13143bd26f7bc9b249e537b04a0b84d7b508a3c6b70b3f50182d361cd050d925997ecd85")
-        self.assertTrue(crypto.verify(sign, dgst))
-        self.assertTrue(crypto.verify(sign2, dgst))
+        assert crypto.verify(sign, dgst)
+        assert crypto.verify(sign2, dgst)
 
     def test_get_verify_crypto_ok(self):
         crypto = self.crypto(valid_cert, valid_key)
         verify_crypto = crypto.get_verify_crypto(valid_cert)
-        self.assertEqual(verify_crypto._hash, digest_hash)
-        self.assertIsNone(verify_crypto._prv_key)
-        self.assertEqual(verify_crypto._pub_key, pub_key)
-        self.assertEqual(verify_crypto._curve, cert_curve)
+        assert verify_crypto._hash == digest_hash
+        assert not verify_crypto._prv_key
+        assert verify_crypto._pub_key == pub_key
+        assert verify_crypto._curve == cert_curve
