@@ -1,3 +1,8 @@
+#  Copyright © 2020-present Artem V. Zaborskiy <ftomza@yandex.ru>. All rights reserved.
+#
+#  This source code is licensed under the Apache 2.0 license found
+#  in the LICENSE file in the root directory of this source tree.
+
 from base64 import b64encode
 
 import pytest
@@ -6,7 +11,7 @@ from pygost import gost3410, gost34112012256
 from pygost.asn1schemas.x509 import GostR34102012PublicKeyParameters
 
 from sspvo.crypto import GOSTCrypto
-from sspvo.errors import CertNotValid, BadRequest, KeyNotValid
+from sspvo.exceptions import CertNotValid, BadRequest, KeyNotValid
 
 valid_cert = """
 -----BEGIN CERTIFICATE-----
@@ -95,7 +100,6 @@ digest_hash = gost34112012256.GOST34112012256
 cert_curve = gost3410.CURVES["id-GostR3410-2001-CryptoPro-XchA-ParamSet"]
 
 
-# Pylint: disable=TestGOSTCrypto
 class TestGOSTCrypto:
 
     def setup(self):

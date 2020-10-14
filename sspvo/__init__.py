@@ -1,6 +1,30 @@
+#  Copyright © 2020-present Artem V. Zaborskiy <ftomza@yandex.ru>. All rights reserved.
+#
+#  This source code is licensed under the Apache 2.0 license found
+#  in the LICENSE file in the root directory of this source tree.
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict
+from enum import Enum
+from typing import Dict, Any, Callable
+
+
+class Fields(Enum):
+    ogrn = "OGRN"
+    kpp = "KPP"
+    cls = "CLS"
+    cert = "Cert64"
+    token = "token"
+    action = "action"
+    data_type = "data_type"
+    idjwt = "IDJWT"
+
+
+def set_field(field: Fields, value: Any) -> Callable:
+    def m(f: Dict[str, Any]):
+        f[field.value] = value
+
+    return m
 
 
 class AbstractCrypto(ABC):
@@ -29,16 +53,18 @@ class AbstractCrypto(ABC):
 class ClientResponse:
     code: int
     body: bytes
-    header: Dict[str, str]
+    headers: Any
 
 
-class Response(ABC):
+class AbstractResponse(ABC):
     @abstractmethod
+    @property
     def client_response(self) -> ClientResponse:
         pass
 
     @abstractmethod
-    def set_client_response(self, resp: ClientResponse):
+    @client_response.setter
+    def client_response(self, value: ClientResponse):
         pass
 
     @abstractmethod
@@ -46,8 +72,14 @@ class Response(ABC):
         pass
 
 
-class Message(ABC):
+class AbstractMessage(ABC):
+
     @abstractmethod
+    def update_jwt_fields(self, *args) -> "AbstractMessage":
+        pass
+
+    @abstractmethod
+    @property
     def path_method(self) -> str:
         pass
 
@@ -56,22 +88,22 @@ class Message(ABC):
         pass
 
     @abstractmethod
-    def response(self) -> Response:
+    def response(self) -> AbstractResponse:
         pass
 
 
-class Client(ABC):
+class AbstractClient(ABC):
     @abstractmethod
-    def send(self, msg: Message) -> Response:
+    def send(self, msg: AbstractMessage) -> AbstractResponse:
         pass
 
     @abstractmethod
-    def prepare(self, msg: Message) -> bytes:
+    def prepare(self, msg: AbstractMessage) -> bytes:
         pass
 
 
 @dataclass
 class Token:
-    header: str
-    payload: str
-    sign: str
+    header: str = ""
+    payload: str = ""
+    sign: str = ""

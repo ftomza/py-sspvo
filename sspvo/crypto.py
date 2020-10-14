@@ -1,18 +1,22 @@
+#  Copyright © 2020-present Artem V. Zaborskiy <ftomza@yandex.ru>. All rights reserved.
+#
+#  This source code is licensed under the Apache 2.0 license found
+#  in the LICENSE file in the root directory of this source tree.
+
 from base64 import b64decode
 from typing import Tuple, Optional, Dict
 
 import pem as pem
+from pyderasn import ObjectIdentifier, OctetString
 from pygost import gost3410, gost34112012256, gost34112012512
 from pygost.asn1schemas.prvkey import PrivateKeyInfo, PrivateKey
 from pygost.asn1schemas.x509 import Certificate, AlgorithmIdentifier, GostR34102012PublicKeyParameters, \
     SubjectPublicKeyInfo, TBSCertificate
-
-from pyderasn import ObjectIdentifier, OctetString
 from pygost.gost3410 import GOST3410Curve
 from pygost.iface import PEP247
 
 from sspvo import AbstractCrypto
-from sspvo.errors import BadRequest, CertNotValid, KeyNotValid
+from sspvo.exceptions import BadRequest, CertNotValid, KeyNotValid
 
 oid_curve_names = {
     ObjectIdentifier("1.2.643.2.2.35.1"): "id-GostR3410-2001-CryptoPro-A-ParamSet",
@@ -41,6 +45,9 @@ hashes: Dict[str, PEP247] = {
 
 
 class Crypto(AbstractCrypto):
+    """
+    Crypto Basic structure that implements the sspvo.AbstractCrypto interface.
+    """
 
     def __init__(self, cert: str, key: Optional[str] = None):
         self._cert = cert
@@ -50,7 +57,7 @@ class Crypto(AbstractCrypto):
             raise BadRequest("Cert not set")
 
     def get_verify_crypto(self, cert: str) -> "Crypto":
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def get_cert(self) -> str:
         return self._cert
@@ -62,10 +69,10 @@ class Crypto(AbstractCrypto):
         return self._hash(data).digest()
 
     def sign(self, digest: bytes) -> bytes:
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def verify(self, sign: bytes, digest: bytes) -> bool:
-        raise NotImplementedError
+        raise NotImplementedError()
 
 
 class GOSTCrypto(Crypto):
