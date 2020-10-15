@@ -1,3 +1,4 @@
 pem~=20.1
 pyderasn~=8.1
 pygost~=5.1
+requests~=2.24
