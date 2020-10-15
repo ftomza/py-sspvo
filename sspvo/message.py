@@ -22,6 +22,7 @@ CLS = Enum("CLS", "Directions CampaignType CampaignStatus Benefit EducationForm 
                   "Olympics AppealStatuses MilitaryCategories")
 
 Actions = Enum("Actions", "Add Edit Remove Get")
+
 DataTypes = Enum("DataTypes", "subdivision_org campaign achievements admission_volume "
                               "distributed_admission_volume "
                               "competitive_groups competitive_group_programs competitive_benefits "
@@ -104,7 +105,7 @@ class CLSMessage(Message):
 
     def __init__(self, cls: "CLS"):
         super().__init__()
-        self.update_jwt_fields(set_field(Fields.cls, cls.value))
+        self.update_jwt_fields(set_field(Fields.cls, cls.name))
 
     @property
     def path_method(self) -> str:
@@ -113,13 +114,13 @@ class CLSMessage(Message):
 
 class ActionMessage(MessageSign):
 
-    def __init__(self, crypto: AbstractCrypto, action: "Actions", data_type: "DataTypes", data: Optional[bytes]):
+    def __init__(self, crypto: AbstractCrypto, action: "Actions", data_type: "DataTypes", data: Optional[bytes] = None):
         super().__init__(crypto, data)
-        self.update_jwt_fields(set_field(Fields.action, action.value), set_field(Fields.data_type, data_type.value))
+        self.update_jwt_fields(set_field(Fields.action, action.name), set_field(Fields.data_type, data_type.name))
 
     @property
     def path_method(self) -> str:
-        return PathMethods.cls.value
+        return PathMethods.action.value
 
 
 class IDJWTMessage(MessageSign):
@@ -133,6 +134,12 @@ class IDJWTMessage(MessageSign):
         raise NotImplementedError()
 
 
+class PathInfoMessage(Message):
+    @property
+    def path_method(self) -> str:
+        return PathMethods.info.value
+
+
 class ConfirmMessage(IDJWTMessage):
 
     @property
@@ -140,18 +147,12 @@ class ConfirmMessage(IDJWTMessage):
         return PathMethods.confirm.value
 
 
-class InfoMessage(IDJWTMessage):
-
-    @property
-    def path_method(self) -> str:
-        return PathMethods.info.value
+class InfoMessage(PathInfoMessage, IDJWTMessage):
+    pass
 
 
-class InfoAllMessage(MessageSign):
-
-    @property
-    def path_method(self) -> str:
-        return PathMethods.info.value
+class InfoAllMessage(PathInfoMessage):
+    pass
 
 
 def _set_token(token: Token) -> Callable:
@@ -159,12 +160,12 @@ def _set_token(token: Token) -> Callable:
 
 
 def _set_cert(cert: str) -> Callable:
-    return set_field(Fields.token, _prepare_cert_for_field(cert))
+    return set_field(Fields.cert, _prepare_cert_for_field(cert))
 
 
 def _prepare_cert_for_field(cert: str) -> str:
     def cert_is_pem_format():
-        return cert.startswith("------")
+        return cert.startswith("-----")
     if cert_is_pem_format():
         lines = cert.strip().split("\n")
         cert = "".join(lines[1:-1])

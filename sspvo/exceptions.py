@@ -13,19 +13,22 @@ class BadSign(Exception):
 
 class BadResponse(Exception):
     def __init__(self, code, response, *args, **kwargs):
-        super.__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._code = code
         self._response = response
 
     def __repr__(self):
         return f"{self._code}: {self._response}"
 
+    def __str__(self):
+        return self.__repr__()
+
     @property
     def code(self):
         return self._code
 
     @property
-    def response(self):
+    def body(self):
         return self._response
 
 

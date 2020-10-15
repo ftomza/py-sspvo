@@ -52,7 +52,7 @@ class ResponseSign(Response):
             return data
 
         if not self._verify_token(token):
-            BadSign("Not valid sign response")
+            raise BadSign("Not valid sign response")
 
         return data
 

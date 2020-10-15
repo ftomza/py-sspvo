@@ -32,8 +32,8 @@ class Client(AbstractClient):
 
 class RequestsClient(Client):
 
-    def __init__(self, session: Session, *, ogrn: str, kpp: str, api_base: str):
-        super().__init__(ogrn, kpp, api_base)
+    def __init__(self, session: Session, *, ogrn: str, kpp: str, api_url: str):
+        super().__init__(ogrn, kpp, api_url)
         self._session = session
 
     def send(self, msg: AbstractMessage) -> AbstractResponse:

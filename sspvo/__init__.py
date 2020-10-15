@@ -57,13 +57,14 @@ class ClientResponse:
 
 
 class AbstractResponse(ABC):
-    @abstractmethod
+
     @property
+    @abstractmethod
     def client_response(self) -> ClientResponse:
         pass
 
-    @abstractmethod
     @client_response.setter
+    @abstractmethod
     def client_response(self, value: ClientResponse):
         pass
 
@@ -78,8 +79,8 @@ class AbstractMessage(ABC):
     def update_jwt_fields(self, *args) -> "AbstractMessage":
         pass
 
-    @abstractmethod
     @property
+    @abstractmethod
     def path_method(self) -> str:
         pass
 
