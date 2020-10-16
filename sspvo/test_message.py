@@ -9,10 +9,10 @@ import pytest
 from sspvo import set_field, Fields, AbstractCrypto
 from sspvo.exceptions import BadRequest, BadSign
 from sspvo.message import Message, MessageSign, CLSMessage, CLS, ActionMessage, Actions, DataTypes, IDJWTMessage, \
-    ConfirmMessage, InfoMessage, PathInfoMessage, InfoAllMessage
+    ConfirmMessage, InfoMessage, InfoAllMessage, BaseInfoMessage
 from sspvo.response import Response, ResponseSign
 
-test_cert = "-----BEGIN CERTIFICATE-----\nTEST\n-----END CERTIFICATE-----"
+test_cert = "\n-----BEGIN CERTIFICATE-----\nTEST\n-----END CERTIFICATE-----\n"
 
 
 class TestMessage:
@@ -153,19 +153,27 @@ class TestIDJWTMessage:
 
 class TestConfirmMessage:
 
+    def test_init_ok(self, mocker):
+        m = ConfirmMessage(mocker.Mock(), 1)
+        assert m._fields == {'IDJWT': 1, 'action': 'MessageConfirm'}
+
     def test_path_method_ok(self, mocker):
         m = ConfirmMessage(mocker.Mock(), 1)
         assert m.path_method == "token/confirm"
 
 
-class TestPathInfoMessage:
+class TestBaseInfoMessage:
 
     def test_path_method_ok(self):
-        m = PathInfoMessage()
+        m = BaseInfoMessage()
         assert m.path_method == "token/info"
 
 
 class TestInfoMessage:
+
+    def test_init_ok(self, mocker):
+        m = InfoMessage(mocker.Mock(), 1)
+        assert m._fields == {'IDJWT': 1, 'action': 'GetMessage'}
 
     def test_path_method_ok(self, mocker):
         m = InfoMessage(mocker.Mock(), 1)
@@ -173,6 +181,10 @@ class TestInfoMessage:
 
 
 class TestInfoAllMessage:
+
+    def test_init_ok(self):
+        m = BaseInfoMessage()
+        assert m._fields == {'action': 'GetMessage'}
 
     def test_path_method_ok(self):
         m = InfoAllMessage()

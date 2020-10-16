@@ -21,7 +21,7 @@ CLS = Enum("CLS", "Directions CampaignType CampaignStatus Benefit EducationForm 
                   "Regions ReturnTypes VeteranCategories ViolationTypes OlympicsProfiles OlyProfiles "
                   "Olympics AppealStatuses MilitaryCategories")
 
-Actions = Enum("Actions", "Add Edit Remove Get")
+Actions = Enum("Actions", "Add Edit Remove Get GetMessage MessageConfirm")
 
 DataTypes = Enum("DataTypes", "subdivision_org campaign achievements admission_volume "
                               "distributed_admission_volume "
@@ -42,9 +42,12 @@ class PathMethods(Enum):
 
 
 class Message(AbstractMessage):
+    _action = None
 
     def __init__(self):
         self._fields = {}
+        if self._action:
+            self.update_jwt_fields(set_field(Fields.action, self._action))
 
     def update_jwt_fields(self, *args) -> "AbstractMessage":
         for opt in args:
@@ -124,6 +127,7 @@ class ActionMessage(MessageSign):
 
 
 class IDJWTMessage(MessageSign):
+    _action = None
 
     def __init__(self, crypto: AbstractCrypto, idjwt: int):
         super().__init__(crypto)
@@ -134,24 +138,27 @@ class IDJWTMessage(MessageSign):
         raise NotImplementedError()
 
 
-class PathInfoMessage(Message):
+class BaseInfoMessage(Message):
+    _action = Actions.GetMessage.name
+
     @property
     def path_method(self) -> str:
         return PathMethods.info.value
 
 
 class ConfirmMessage(IDJWTMessage):
+    _action = Actions.MessageConfirm.name
 
     @property
     def path_method(self) -> str:
         return PathMethods.confirm.value
 
 
-class InfoMessage(PathInfoMessage, IDJWTMessage):
+class InfoMessage(BaseInfoMessage, IDJWTMessage):
     pass
 
 
-class InfoAllMessage(PathInfoMessage):
+class InfoAllMessage(BaseInfoMessage):
     pass
 
 
@@ -166,7 +173,9 @@ def _set_cert(cert: str) -> Callable:
 def _prepare_cert_for_field(cert: str) -> str:
     def cert_is_pem_format():
         return cert.startswith("-----")
+
+    cert = cert.strip()
     if cert_is_pem_format():
-        lines = cert.strip().split("\n")
+        lines = cert.split("\n")
         cert = "".join(lines[1:-1])
     return cert
