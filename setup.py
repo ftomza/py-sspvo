@@ -16,5 +16,6 @@ setuptools.setup(
         "pygost~=5.1",
         "pem~=20.1",
         "pydersan~=8.1",
+        "requests~=2.24",
     ]
 )
