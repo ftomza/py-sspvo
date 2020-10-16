@@ -139,7 +139,6 @@ class IDJWTMessage(MessageSign):
 
 
 class BaseInfoMessage(Message):
-    _action = Actions.GetMessage.name
 
     @property
     def path_method(self) -> str:
@@ -155,7 +154,7 @@ class ConfirmMessage(IDJWTMessage):
 
 
 class InfoMessage(BaseInfoMessage, IDJWTMessage):
-    pass
+    _action = Actions.GetMessage.name
 
 
 class InfoAllMessage(BaseInfoMessage):

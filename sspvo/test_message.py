@@ -184,7 +184,7 @@ class TestInfoAllMessage:
 
     def test_init_ok(self):
         m = BaseInfoMessage()
-        assert m._fields == {'action': 'GetMessage'}
+        assert m._fields == {}
 
     def test_path_method_ok(self):
         m = InfoAllMessage()
